@@ -38,8 +38,10 @@ Shader "Dynamic Lighting/Diffuse"
             #pragma shader_feature_local _EMISSION
             #pragma shader_feature_local _ _ALPHATEST_ON _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local _ DYNAMIC_LIGHTING_CULL_FRONT DYNAMIC_LIGHTING_CULL_OFF
+            #pragma require inlineraytracing
 
             #include "UnityCG.cginc"
+            #include "UnityRayQuery.cginc" 
             #include_with_pragmas "Packages/de.alpacait.dynamiclighting/AlpacaIT.DynamicLighting/Shaders/DynamicLighting.cginc"
 
             struct appdata
@@ -67,6 +69,8 @@ Shader "Dynamic Lighting/Diffuse"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
+
+            RaytracingAccelerationStructure g_AccelStruct;
 
             #ifdef _EMISSION
                 sampler2D _EmissionMap;
@@ -194,6 +198,21 @@ Shader "Dynamic Lighting/Diffuse"
                 #define GENERATE_NORMAL i.normal
                 #include "Packages/de.alpacait.dynamiclighting/AlpacaIT.DynamicLighting/Shaders/Generators/LightProcessor.cginc"
                 
+                RayDesc shadowRay;
+                shadowRay.Origin = i.world + i.normal * 0.1;
+                shadowRay.Direction = light_direction;
+                shadowRay.TMin = 0.01;
+                shadowRay.TMax = sqrt(light_distanceSqr);
+
+                UnityRayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> shadowQuery;
+
+                shadowQuery.TraceRayInline(g_AccelStruct, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, 0xff, shadowRay);
+                shadowQuery.Proceed();
+                if (shadowQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
+                {
+                    map = 0;
+                }
+
                 // add this light to the final color of the fragment.
 #if defined(DYNAMIC_LIGHTING_BOUNCE) && !defined(DYNAMIC_LIGHTING_INTEGRATED_GRAPHICS)
                 light_final += (light.color * attenuation * NdotL * map) + (light.bounceColor * attenuation * bounce);

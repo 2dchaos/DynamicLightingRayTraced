@@ -611,6 +611,9 @@ namespace AlpacaIT.DynamicLighting
             // -> partial class DynamicLightManager.DistanceCubes initialize.
             DistanceCubesInitialize();
 
+            // -> partial class DynamicLightManager.RayTracing initialize.
+            RaytracingInitialize();
+
             ShadersSetGlobalDynamicLights(dynamicLightsBuffer);
             ShadersSetGlobalDynamicLightsCount(0);
             ShadersSetGlobalRealtimeLightsCount(0);
@@ -814,6 +817,9 @@ namespace AlpacaIT.DynamicLighting
             // -> partial class DynamicLightManager.DistanceCubes cleanup.
             DistanceCubesCleanup();
 
+            // -> partial class DynamicLightManager.RayTracing cleanup.
+            RaytracingCleanup();
+
             // callback for third-party developers.
             uninitialized?.Invoke(this, new DynamicLightingUninitializedEventArgs(this));
         }
@@ -905,7 +911,7 @@ namespace AlpacaIT.DynamicLighting
 #if UNITY_EDITOR
             if (editorIsPlaying)
 #endif
-                Debug.LogWarning("Reallocation of dynamic lighting shader buffers on the graphics card due to a light budget change (slow).");
+            Debug.LogWarning("Reallocation of dynamic lighting shader buffers on the graphics card due to a light budget change (slow).");
 
             // properly release any old buffer.
             if (dynamicLightsBuffer != null && dynamicLightsBuffer.IsValid())
@@ -1163,6 +1169,9 @@ namespace AlpacaIT.DynamicLighting
 
             // update the runtime quality settings.
             ShadersSetRuntimeQuality(runtimeQuality);
+
+            // -> partial class DynamicLightManager.RayTracing update.
+            RaytracingUpdate();
 
 #if UNITY_EDITOR
             // detect mesh changes in edit mode.
