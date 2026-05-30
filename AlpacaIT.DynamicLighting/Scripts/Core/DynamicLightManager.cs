@@ -961,7 +961,7 @@ namespace AlpacaIT.DynamicLighting
                     if (configuredSkinnedMeshes.Contains(smr)) continue;
 
                     smr.updateWhenOffscreen = true;
-                    smr.localBounds = new Bounds(Vector3.zero, new Vector3(100f, 100f, 100f));
+                    // smr.localBounds = new Bounds(Vector3.zero, new Vector3(100f, 100f, 100f));
 
                     if (smr.enabled)
                     {
