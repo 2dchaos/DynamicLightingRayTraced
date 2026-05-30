@@ -1,4 +1,6 @@
-# Dynamic Lighting for Unity.
+# Dynamic Lighting for Unity(with Raytraced real time Shadows)
+
+Implementation is by Henry, the bugs are probably mine! XD
 
 This package brings an old school lighting technique to Unity.
 
