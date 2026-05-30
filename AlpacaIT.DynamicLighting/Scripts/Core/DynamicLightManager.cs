@@ -928,9 +928,57 @@ namespace AlpacaIT.DynamicLighting
         /// <summary>Gets the total light budget to be reserved on the graphics card.</summary>
         private int totalLightBudget => Mathf.Max(raycastedDynamicLights.Count + realtimeLightBudget, 1);
 
+        private float lastSkinnedMeshScanTime = -999f;
+        private System.Collections.Generic.HashSet<SkinnedMeshRenderer> configuredSkinnedMeshes = new System.Collections.Generic.HashSet<SkinnedMeshRenderer>();
+        private void UpdateSkinnedMeshRenderers()
+        {
+            bool shouldScan = false;
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                shouldScan = true;
+            }
+            else
+#endif
+            {
+                if (Time.time - lastSkinnedMeshScanTime > 1.0f)
+                {
+                    shouldScan = true;
+                    lastSkinnedMeshScanTime = Time.time;
+                }
+            }
+
+            if (shouldScan)
+            {
+                configuredSkinnedMeshes.RemoveWhere(smr => smr == null);
+
+                var skinnedMeshes = Compatibility.FindObjectsOfType<SkinnedMeshRenderer>();
+                for (int i = 0; i < skinnedMeshes.Length; i++)
+                {
+                    var smr = skinnedMeshes[i];
+                    if (smr == null) continue;
+
+                    if (configuredSkinnedMeshes.Contains(smr)) continue;
+
+                    smr.updateWhenOffscreen = true;
+                    smr.localBounds = new Bounds(Vector3.zero, new Vector3(100f, 100f, 100f));
+
+                    if (smr.enabled)
+                    {
+                        smr.enabled = false;
+                        smr.enabled = true;
+                    }
+
+                    configuredSkinnedMeshes.Add(smr);
+                }
+            }
+        }
+
         /// <summary>This handles the CPU side lighting effects.</summary>
         private unsafe void Update()
         {
+            UpdateSkinnedMeshRenderers();
+
             // callback for third-party developers.
             preUpdate?.Invoke(this, dynamicLightingPreUpdateEventArgs);
 
